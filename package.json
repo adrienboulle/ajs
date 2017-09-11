@@ -1,0 +1,21 @@
+{
+  "name": "ajs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "child_process": "^1.0.2",
+    "domino": "^1.0.29",
+    "express": "^4.15.4",
+    "jscs": "^3.0.7",
+    "reflect-metadata": "^0.1.10",
+    "tslint": "^5.7.0",
+    "typescript": "^2.5.2",
+    "zone.js": "^0.8.17"
+  }
+}

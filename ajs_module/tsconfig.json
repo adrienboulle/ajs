@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "sourceMap": false,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "target": "es5",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "outDir": "../.tmp",
+    "lib": ["es5", "es6", "dom"]
+  },
+  "include": [
+    "../ajs/**/*.ts"
+  ]
+}

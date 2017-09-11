@@ -1,0 +1,5 @@
+{
+  "preset": "airbnb",
+  "maximumLineLength": 20000,
+  "disallowParenthesesAroundArrowParam": true
+}
