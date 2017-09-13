@@ -17,10 +17,6 @@ Object.defineProperty(htmlElement.HTMLElement.prototype, 'innerText',
   }
 );
 
-if (!Zone) {
-  require('zone.js/dist/zone-node.js');
-}
-
 require('reflect-metadata');
 
 const ElementRef = require('./lib/api').ElementRef;
@@ -142,6 +138,10 @@ module.exports = () => {
   const componentsMap = new Map();
 
   return (filePath, options, callback) => {
+    if (!global.Zone) {
+      require('zone.js/dist/zone-node.js');
+    }
+
     options = options || {};
 
     if (!options.content) {
