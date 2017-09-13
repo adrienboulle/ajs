@@ -6,10 +6,10 @@
     "target": "es5",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "outDir": "../.tmp",
+    "outDir": "../../.tmp",
     "lib": ["es5", "es6", "dom"]
   },
   "include": [
-    "../ajs/**/*.ts"
+    "../../ajs/**/*.ts"
   ]
 }
