@@ -138,6 +138,19 @@ module.exports = () => {
   const componentsMap = new Map();
 
   return (filePath, options, callback) => {
+    let callbackBack = callback;
+
+    callback = (err, val) => {
+      if (callbackBack) {
+        if (err && err.toString) {
+          err = err.toString();
+        }
+
+        callbackBack(err, val);
+        callbackBack = null;
+      }
+    };
+
     if (!global.Zone) {
       require('zone.js/dist/zone-node.js');
     }
@@ -150,15 +163,7 @@ module.exports = () => {
 
     read(options, (err, content) => {
       if (err) {
-        return callback(new Error(err));
-      }
-
-      if (options.compile) {
-        if (compileTs() === -1) {
-          console.log('ERROR IN AJS TS')
-
-          callback('ERR');
-        }
+        return callback(err);
       }
 
       let pathRoot = '.tmp/';
@@ -213,6 +218,9 @@ module.exports = () => {
           if (!hasTask.macroTask && !hasTask.microTask) {
             callback(null, document.innerHTML);
           }
+        },
+        onHandleError(parentZoneDelegate, currentZone, targetZone, error) {
+          callback(error);
         },
       })
       .run(() => setTimeout(() => compile({ node: root, document, serviceMap, componentsMap })));
