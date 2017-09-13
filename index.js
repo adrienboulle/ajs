@@ -17,7 +17,10 @@ Object.defineProperty(htmlElement.HTMLElement.prototype, 'innerText',
   }
 );
 
-require('zone.js/dist/zone-node.js');
+if (!Zone) {
+  require('zone.js/dist/zone-node.js');
+}
+
 require('reflect-metadata');
 
 const ElementRef = require('./lib/api').ElementRef;
