@@ -7,7 +7,7 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "outDir": "../../.tmp",
-    "lib": ["es6"],
+    "lib": ["es6", "dom"],
     "types": []
   },
   "include": [
