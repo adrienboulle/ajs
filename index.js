@@ -187,7 +187,13 @@ module.exports = () => {
 
         fs.readdirSync(pathRoot).forEach(file => {
           if (fs.lstatSync(pathRoot + '/' + file).isFile()) {
-            const f = require(__dirname + '/../../' + pathRoot + file);
+            let f;
+
+            try {
+              f = require(__dirname + '/../../' + pathRoot + file);
+            } catch (e) {
+              return callback(e);
+            }
 
             for (let c in f) {
               if (f.hasOwnProperty(c)) {
