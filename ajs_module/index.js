@@ -25,8 +25,8 @@ const DOCUMENT = require('./lib/api').DOCUMENT;
 const BINDING = /\{\{(.*?)\}\}/;
 
 const getArgs = (cls, context) =>
-  Reflect
-  .getMetadata('design:paramtypes', cls)
+  (Reflect
+  .getMetadata('design:paramtypes', cls) || [])
   .map(param => {
     let returned;
 
@@ -112,19 +112,83 @@ const compile = context => {
   });
 };
 
+const compileTs = () => {
+  try {
+    execSync('./node_modules/.bin/tsc -p ./node_modules/ajs/tsconfig.json', { stdio: [0, 1, 2] });
+  } catch (e) {
+    return -1;
+  }
+};
+
+const read = (opts, cb) => {
+  if (opts.path) {
+    fs.readFile(opts.path, (err, content) => {
+      cb(err, content);
+    });
+  } else if (opts.content) {
+    cb(null, opts.content);
+  }
+};
+
 module.exports = () => {
-  execSync('./node_modules/.bin/tsc -p ajs_module/tsconfig.json', { stdio: [0, 1, 2] });
+  if (compileTs() === -1) {
+    console.log('ERROR IN AJS TS');
+  }
 
   const serviceMap = require('./lib/api').serviceMap;
   const componentsMap = new Map();
 
   return (filePath, options, callback) => {
-    fs.readFile(filePath, (err, content) => {
+    options = options || {};
+
+    if (!options.content) {
+      options.path = filePath;
+    }
+
+    read(options, (err, content) => {
       if (err) {
         return callback(new Error(err));
       }
 
-      const app = require('../.tmp/app');
+      if (options.compile) {
+        if (compileTs() === -1) {
+          console.log('ERROR IN AJS TS')
+
+          callback('ERR');
+        }
+      }
+
+      let pathRoot = '.tmp/';
+
+      if (options.subPath) {
+        pathRoot += options.subPath + '/';
+      }
+
+      let path = pathRoot;
+
+      path += 'app';
+
+      let app;
+
+      if (fs.existsSync(path)) {
+        app = require(path);
+      } else {
+        app = {
+          components: [],
+        };
+
+        fs.readdirSync(pathRoot).forEach(file => {
+          if (fs.lstatSync(pathRoot + '/' + file).isFile()) {
+            const f = require(__dirname + '/../../' + pathRoot + file);
+
+            for (let c in f) {
+              if (f.hasOwnProperty(c)) {
+                app.components.push(f[c]);
+              }
+            }
+          }
+        });
+      }
 
       for (let cmp of app.components) {
         const meta = Reflect.getMetadata('annotations', cmp);
