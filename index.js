@@ -134,11 +134,11 @@ module.exports = toCompile => {
     console.log('ERROR IN AJS TS');
   }
 
-  const serviceMap = new Map();
-  const componentsMap = new Map();
-
   return (filePath, options, callback) => {
     let callbackBack = callback;
+
+    const serviceMap = new Map();
+    const componentsMap = new Map();
 
     callback = (err, val) => {
       if (callbackBack) {
@@ -186,7 +186,7 @@ module.exports = toCompile => {
           services: [],
         };
 
-        for (let file in fs.readdirSync(pathRoot)) {
+        for (let file of fs.readdirSync(pathRoot)) {
           if (fs.lstatSync(pathRoot + '/' + file).isFile()) {
             let f;
 
@@ -198,7 +198,7 @@ module.exports = toCompile => {
 
             for (let c in f) {
               if (f.hasOwnProperty(c)) {
-                if (Reflect.getMetadata('service', target) === true) {
+                if (Reflect.getMetadata('service', f[c]) === true) {
                   app.services.push(f[c]);
                 } else {
                   app.components.push(f[c]);
@@ -234,6 +234,7 @@ module.exports = toCompile => {
             callback(null, document.innerHTML);
           }
         },
+
         onHandleError(parentZoneDelegate, currentZone, targetZone, error) {
           callback(error);
         },
