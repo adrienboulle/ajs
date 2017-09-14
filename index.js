@@ -3,19 +3,19 @@ const fs = require('fs');
 const domino = require('domino');
 const htmlElement = require('domino/lib/htmlelts');
 
-Object.defineProperty(htmlElement.HTMLElement.prototype, 'innerText',
-  {
-    get: function () {
-      return this.serialize();
-    },
-
-    set: function (value) {
-      const txtnd = this.ownerDocument.createTextNode();
-      txtnd.data = value;
-      this.appendChild(txtnd);
-    },
-  }
-);
+// Object.defineProperty(htmlElement.HTMLElement.prototype, 'innerText',
+//   {
+//     get: function () {
+//       return this.serialize();
+//     },
+//
+//     set: function (value) {
+//       const txtnd = this.ownerDocument.createTextNode();
+//       txtnd.data = value;
+//       this.appendChild(txtnd);
+//     },
+//   }
+// );
 
 require('reflect-metadata');
 
