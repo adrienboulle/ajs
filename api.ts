@@ -1,7 +1,5 @@
 declare let Reflect: any;
 
-export const serviceMap = new Map<any, any>();
-
 export function Component(opts: any) {
   return function (target: any) {
     let annotations: any = {};
@@ -20,8 +18,8 @@ export function Component(opts: any) {
 }
 
 export function Service() {
-  return function (a: any) {
-    serviceMap.set(a, true);
+  return function (target: any) {
+    Reflect.defineMetadata('service', true, target);
   };
 }
 

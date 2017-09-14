@@ -1,6 +1,5 @@
-export declare const serviceMap: Map<any, any>;
 export declare function Component(opts: any): (target: any) => void;
-export declare function Service(): (a: any) => void;
+export declare function Service(): (target: any) => void;
 export declare function Input(val?: string): any;
 export declare function Output(val?: string): any;
 export declare class ElementRef {

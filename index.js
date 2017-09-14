@@ -134,7 +134,7 @@ module.exports = toCompile => {
     console.log('ERROR IN AJS TS');
   }
 
-  const serviceMap = require('./lib/api').serviceMap;
+  const serviceMap = new Map();
   const componentsMap = new Map();
 
   return (filePath, options, callback) => {
@@ -183,9 +183,10 @@ module.exports = toCompile => {
       } else {
         app = {
           components: [],
+          services: [],
         };
 
-        fs.readdirSync(pathRoot).forEach(file => {
+        for (let file in fs.readdirSync(pathRoot)) {
           if (fs.lstatSync(pathRoot + '/' + file).isFile()) {
             let f;
 
@@ -197,16 +198,24 @@ module.exports = toCompile => {
 
             for (let c in f) {
               if (f.hasOwnProperty(c)) {
-                app.components.push(f[c]);
+                if (Reflect.getMetadata('service', target) === true) {
+                  app.services.push(f[c]);
+                } else {
+                  app.components.push(f[c]);
+                }
               }
             }
           }
-        });
+        }
       }
 
       for (let cmp of app.components) {
         const meta = Reflect.getMetadata('annotations', cmp);
         componentsMap.set(meta.selector, cmp);
+      }
+
+      for (let service of app.services) {
+        serviceMap.set(service, true);
       }
 
       serviceMap.set(ElementRef, true);
