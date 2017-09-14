@@ -3,19 +3,19 @@ const fs = require('fs');
 const domino = require('domino');
 const htmlElement = require('domino/lib/htmlelts');
 
-// Object.defineProperty(htmlElement.HTMLElement.prototype, 'innerText',
-//   {
-//     get: function () {
-//       return this.serialize();
-//     },
-//
-//     set: function (value) {
-//       const txtnd = this.ownerDocument.createTextNode();
-//       txtnd.data = value;
-//       this.appendChild(txtnd);
-//     },
-//   }
-// );
+Object.defineProperty(htmlElement.HTMLElement.prototype, 'innerText',
+  {
+    get: function () {
+      return this.serialize();
+    },
+
+    set: function (value) {
+      const txtnd = this.ownerDocument.createTextNode();
+      txtnd.data = value;
+      this.appendChild(txtnd);
+    },
+  }
+);
 
 require('reflect-metadata');
 
@@ -89,9 +89,15 @@ const compile = context => {
 
       break;
     case 3:
-      let match = node.data.match(BINDING);
+      const processed = [];
+      let remaining = node.data;
+      let match = remaining.match(BINDING);
+      let strBefore;
 
       while (match) {
+        strBefore = remaining.substring(0, match.index + match[0].length);
+        remaining = remaining.substring(match.index + match[0].length);
+
         const path = match[1].trim().split('.');
         let val = context.instance[path.shift()];
 
@@ -99,9 +105,11 @@ const compile = context => {
           val = val[path.shift()];
         }
 
-        node.data = node.data.replace(match[0], val);
-        match = node.data.match(BINDING);
+        processed.push(strBefore.replace(match[0], val));
+        match = remaining.match(BINDING);
       }
+
+      node.data = processed.join();
 
       break;
   }
