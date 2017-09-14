@@ -6,13 +6,46 @@ const htmlElement = require('domino/lib/htmlelts');
 Object.defineProperty(htmlElement.HTMLElement.prototype, 'innerText',
   {
     get: function () {
-      return this.serialize();
+      let s = '';
+
+      for (let i = 0, n = this.childNodes.length; i < n; i++) {
+        const child = this.childNodes[i];
+
+        switch (child.nodeType) {
+          // TEXT_NODE
+          case 3:
+            s += child.data;
+
+            break;
+          default:
+            if (child.tagName && child.tagName.toLowerCase() === 'br') {
+              s += '\n';
+
+              break;
+            }
+
+            const it = child.innerText;
+
+            if (typeof it === 'string') {
+              s += it;
+            }
+
+            break;
+        }
+      }
+
+      return s;
     },
 
     set: function (value) {
-      const txtnd = this.ownerDocument.createTextNode();
-      txtnd.data = value;
-      this.appendChild(txtnd);
+      // Remove any existing children of this node
+      while (this.hasChildNodes()) {
+        this.removeChild(this.firstChild);
+      }
+
+      const txt = this.ownerDocument.createTextNode();
+      txt.data = value;
+      this.appendChild(txt);
     },
   }
 );
@@ -89,12 +122,13 @@ const compile = context => {
 
       break;
     case 3:
-      const processed = [];
+      let processed;
       let remaining = node.data;
       let match = remaining.match(BINDING);
       let strBefore;
 
       while (match) {
+        processed = processed || [];
         strBefore = remaining.substring(0, match.index + match[0].length);
         remaining = remaining.substring(match.index + match[0].length);
 
@@ -109,7 +143,7 @@ const compile = context => {
         match = remaining.match(BINDING);
       }
 
-      node.data = processed.join();
+      node.data = processed ? processed.join() : node.data;
 
       break;
   }
