@@ -129,8 +129,8 @@ const read = (opts, cb) => {
   }
 };
 
-module.exports = compile => {
-  if (compile && compileTs() === -1) {
+module.exports = toCompile => {
+  if (toCompile && compileTs() === -1) {
     console.log('ERROR IN AJS TS');
   }
 
