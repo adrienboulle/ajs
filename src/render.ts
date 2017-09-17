@@ -1,5 +1,7 @@
 import { bootstrap } from './bootstrap';
 
+import 'zone.js/dist/zone.js';
+
 declare let window: any;
 
 ((window: any) => {
@@ -8,10 +10,12 @@ declare let window: any;
   }
 
   window.ajs = {
+    window,
     components: [],
     services: [],
     bootstrap: () => {
-      bootstrap(window.ajs);
+      bootstrap(window.ajs)
+      .catch(e => console.error(e));
     },
   };
 

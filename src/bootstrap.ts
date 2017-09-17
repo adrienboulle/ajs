@@ -35,7 +35,7 @@ const processValue = (root, path) => {
     val = val[path.shift()];
   }
 
-  return val.toString();
+  return val ? val.toString() : '';
 };
 
 const compile = context => {
@@ -128,6 +128,12 @@ export const bootstrap = app => {
   const window = app.window;
   const document = window.document;
   const root = document.querySelector('app');
+
+  if (app.clear) {
+    while (root.hasChildNodes()) {
+      root.removeChild(root.firstChild);
+    }
+  }
 
   return new Promise((resolve, reject) => {
     // We run the compilation inside a Zone context in order to wait for all the async task to be finished before
