@@ -77,6 +77,17 @@ const getArgs = (cls, context) =>
     }
   });
 
+const processValue = (root, path) => {
+  path = path.split('.');
+  let val = root[path.shift()];
+
+  while (path.length && val && val[path[0]]) {
+    val = val[path.shift()];
+  }
+
+  return val;
+};
+
 const compile = context => {
   const componentsMap = context.componentsMap;
   const node = context.node;
@@ -113,10 +124,10 @@ const compile = context => {
           newInstance.onInit();
         }
       } else {
-        const innerText = node.getAttribute('ab-innertext');
+        const innerText = node.getAttribute('ajs-innertext');
 
         if (innerText) {
-          node.innerText = context.instance[innerText] || innerText;
+          node.innerText = processValue(context.instance, innerText) || innerText;
         }
       }
 
@@ -132,14 +143,7 @@ const compile = context => {
         strBefore = remaining.substring(0, match.index + match[0].length);
         remaining = remaining.substring(match.index + match[0].length);
 
-        const path = match[1].trim().split('.');
-        let val = context.instance[path.shift()];
-
-        while (path.length && val && val[path[0]]) {
-          val = val[path.shift()];
-        }
-
-        processed.push(strBefore.replace(match[0], val));
+        processed.push(strBefore.replace(match[0], processValue(context.instance, match[1].trim())));
         match = remaining.match(BINDING);
       }
 
@@ -171,7 +175,7 @@ const read = (opts, cb) => {
   }
 };
 
-module.exports = toCompile => {
+module.exports.__express = (toCompile => {
   if (toCompile && compileTs() === -1) {
     console.log('ERROR IN AJS TS');
   }
@@ -216,12 +220,12 @@ module.exports = toCompile => {
 
       let path = pathRoot;
 
-      path += 'app';
+      path += 'app.js';
 
       let app;
 
       if (fs.existsSync(path)) {
-        app = require(path);
+        app = require(__dirname + '/../../' + path);
       } else {
         app = {
           components: [],
@@ -284,4 +288,4 @@ module.exports = toCompile => {
       .run(() => setTimeout(() => compile({ node: root, document, serviceMap, componentsMap })));
     });
   };
-};
+})(true);
