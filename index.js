@@ -177,6 +177,45 @@ const read = (opts, cb) => {
   }
 };
 
+const bootstrap = app => {
+  const serviceMap = new Map();
+  const componentsMap = new Map();
+
+  for (let cmp of app.components) {
+    const meta = Reflect.getMetadata('annotations', cmp);
+    componentsMap.set(meta.selector, cmp);
+  }
+
+  for (let service of app.services) {
+    serviceMap.set(service, true);
+  }
+
+  serviceMap.set(ElementRef, true);
+  serviceMap.set(DOCUMENT, true);
+
+  const window = domino.createWindow(app.doc);
+  const document = window.document;
+  const root = document.querySelector('app');
+
+  return new Promise((resolve, reject) => {
+    // We run the compilation inside a Zone context in order to wait for all the async task to be finished before
+    // invoking the express callback
+    Zone.current
+    .fork({
+      onHasTask(parent, current, target, hasTask) {
+        if (!hasTask.macroTask && !hasTask.microTask) {
+          resolve(document.innerHTML);
+        }
+      },
+
+      onHandleError(parentZoneDelegate, currentZone, targetZone, error) {
+        reject(error);
+      },
+    })
+    .run(() => setTimeout(() => compile({ node: root, document, serviceMap, componentsMap })));
+  });
+};
+
 module.exports.__express = (toCompile => {
   if (toCompile && compileTs() === -1) {
     console.log('ERROR IN AJS TS');
@@ -184,9 +223,6 @@ module.exports.__express = (toCompile => {
 
   return (filePath, options, callback) => {
     let callbackBack = callback;
-
-    const serviceMap = new Map();
-    const componentsMap = new Map();
 
     callback = (err, val) => {
       if (callbackBack) {
@@ -257,37 +293,11 @@ module.exports.__express = (toCompile => {
         }
       }
 
-      for (let cmp of app.components) {
-        const meta = Reflect.getMetadata('annotations', cmp);
-        componentsMap.set(meta.selector, cmp);
-      }
+      app.doc = content.toString();
 
-      for (let service of app.services) {
-        serviceMap.set(service, true);
-      }
-
-      serviceMap.set(ElementRef, true);
-      serviceMap.set(DOCUMENT, true);
-
-      const window = domino.createWindow(content.toString());
-      const document = window.document;
-      const root = document.querySelector('app');
-
-      // We run the compilation inside a Zone context in order to wait for all the async task to be finished before
-      // invoking the express callback
-      Zone.current
-      .fork({
-        onHasTask(parent, current, target, hasTask) {
-          if (!hasTask.macroTask && !hasTask.microTask) {
-            callback(null, document.innerHTML);
-          }
-        },
-
-        onHandleError(parentZoneDelegate, currentZone, targetZone, error) {
-          callback(error);
-        },
-      })
-      .run(() => setTimeout(() => compile({ node: root, document, serviceMap, componentsMap })));
+      bootstrap(app)
+      .then(response => callback(null, response))
+      .catch(err => callback(err));
     });
   };
 })(true);
