@@ -81,11 +81,11 @@ const processValue = (root, path) => {
   path = path.split('.');
   let val = root[path.shift()];
 
-  while (path.length && val && val[path[0]]) {
+  while (path.length && val && (val[path[0]] || typeof val[path[0]] === 'string')) {
     val = val[path.shift()];
   }
 
-  return val;
+  return val.toString();
 };
 
 const compile = context => {
@@ -127,7 +127,9 @@ const compile = context => {
         const innerText = node.getAttribute('ajs-innertext');
 
         if (innerText) {
-          node.innerText = processValue(context.instance, innerText) || innerText;
+          const val = processValue(context.instance, innerText);
+
+          node.innerText = typeof val === 'string' ? val : innerText;
         }
       }
 
