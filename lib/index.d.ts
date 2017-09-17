@@ -1,2 +1,2 @@
-export * from './ajs.d';
-export { DOCUMENT, Service, Component, ElementRef, Output, Input } from './api.d';
+export { __express } from './ajs';
+export { DOCUMENT, Service, Component, ElementRef, Output, Input } from './api';
