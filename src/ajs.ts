@@ -61,8 +61,7 @@ Object.defineProperty(htmlElement.HTMLElement.prototype, 'innerText',
   },
 );
 
-const ElementRef = require('./lib/api').ElementRef;
-const DOCUMENT = require('./lib/api').DOCUMENT;
+import { ElementRef, DOCUMENT } from './index';
 const BINDING = /\{\{(.*?)\}\}/;
 
 const getArgs = (cls, context) =>
