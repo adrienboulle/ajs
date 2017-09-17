@@ -225,7 +225,7 @@ const bootstrap = app => {
   });
 };
 
-module.exports.__express = (toCompile => {
+export const __express = (toCompile => {
   if (toCompile && compileTs() === -1) {
     console.log('ERROR IN AJS TS');
   }
