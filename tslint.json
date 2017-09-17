@@ -64,7 +64,6 @@
       "check-function-in-method"
     ],
     "no-namespace": false,
-    "no-null-keyword": true,
     "no-reference": true,
     "no-require-imports": true,
     "no-shadowed-variable": false,

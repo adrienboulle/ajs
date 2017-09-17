@@ -1,14 +1,25 @@
+// tslint:disable:no-require-imports
+// tslint:disable:no-var-requires
+// tslint:disable:no-invalid-this
+// tslint:disable:no-console
+
 const execSync = require('child_process').execSync;
 const fs = require('fs');
 const domino = require('domino');
 const htmlElement = require('domino/lib/htmlelts');
+
+import 'reflect-metadata';
+
+declare let global: any;
+declare let Reflect: any;
+declare let Zone: any;
 
 Object.defineProperty(htmlElement.HTMLElement.prototype, 'innerText',
   {
     get: function () {
       let s = '';
 
-      for (let i = 0, n = this.childNodes.length; i < n; i++) {
+      for (let i = 0; i < this.childNodes.length; i++) {
         const child = this.childNodes[i];
 
         switch (child.nodeType) {
@@ -37,7 +48,7 @@ Object.defineProperty(htmlElement.HTMLElement.prototype, 'innerText',
       return s;
     },
 
-    set: function (value) {
+    set: function (value: string) {
       // Remove any existing children of this node
       while (this.hasChildNodes()) {
         this.removeChild(this.firstChild);
@@ -47,10 +58,8 @@ Object.defineProperty(htmlElement.HTMLElement.prototype, 'innerText',
       txt.data = value;
       this.appendChild(txt);
     },
-  }
+  },
 );
-
-require('reflect-metadata');
 
 const ElementRef = require('./lib/api').ElementRef;
 const DOCUMENT = require('./lib/api').DOCUMENT;
@@ -63,7 +72,7 @@ const getArgs = (cls, context) =>
     let returned;
 
     if (context.serviceMap.has(param)) {
-      let S = param;
+      let S: any = param;
 
       if (S === ElementRef) {
         returned = new ElementRef(context.node);
@@ -96,11 +105,11 @@ const compile = context => {
   switch (node.nodeType) {
     case 1:
       if (componentsMap.has(node.tagName.toLowerCase())) {
-        const ClassVal = componentsMap.get(node.tagName.toLowerCase());
-        const meta = Reflect.getMetadata('annotations', ClassVal);
+        const classVal: any = componentsMap.get(node.tagName.toLowerCase());
+        const meta = Reflect.getMetadata('annotations', classVal);
         node.innerHTML = meta.template;
 
-        newInstance = new ClassVal(...getArgs(ClassVal, context));
+        newInstance = new classVal(...getArgs(classVal, context));
 
         if (meta.inputs && meta.inputs.length) {
           for (let input of meta.inputs) {
@@ -202,13 +211,13 @@ const bootstrap = app => {
     // invoking the express callback
     Zone.current
     .fork({
-      onHasTask(parent, current, target, hasTask) {
-        if (!hasTask.macroTask && !hasTask.microTask) {
+      onHasTask: (parentZoneDelegate: any, currentZone: any, targetZone: any, hasTaskState: any) => {
+        if (!hasTaskState.macroTask && !hasTaskState.microTask) {
           resolve(document.innerHTML);
         }
       },
 
-      onHandleError(parentZoneDelegate, currentZone, targetZone, error) {
+      onHandleError(parentZoneDelegate: any, currentZone: any, targetZone: any, error: any) {
         reject(error);
       },
     })

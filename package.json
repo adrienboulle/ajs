@@ -17,5 +17,8 @@
     "tslint": "^5.7.0",
     "typescript": "^2.5.2",
     "zone.js": "^0.8.17"
+  },
+  "devDependencies": {
+    "@types/node": "^8.0.28"
   }
 }
