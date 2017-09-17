@@ -10,7 +10,7 @@ const htmlElement = require('domino/lib/htmlelts');
 
 import 'reflect-metadata';
 
-import { ElementRef, DOCUMENT } from 'api';
+import { ElementRef, DOCUMENT } from './api';
 
 declare let global: any;
 declare let Reflect: any;
