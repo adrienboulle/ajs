@@ -1,2 +1,2 @@
 export * from './ajs';
-export * from './api';
+export { DOCUMENT, Service, Component, ElementRef, Output, Input } from './api';
