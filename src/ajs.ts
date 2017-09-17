@@ -156,7 +156,7 @@ export const __express = (toCompile => {
         }
       }
 
-      app.doc = content.toString();
+      app.window = domino.createWindow(content);
 
       bootstrap(app)
       .then(response => callback(null, response))

@@ -7,25 +7,25 @@ declare let Zone: any;
 const BINDING = /\{\{(.*?)\}\}/;
 
 const getArgs = (cls, context) =>
-    (Reflect
-    .getMetadata('design:paramtypes', cls) || [])
-    .map(param => {
-      let returned;
+  (Reflect
+  .getMetadata('design:paramtypes', cls) || [])
+  .map(param => {
+    let returned;
 
-      if (context.serviceMap.has(param)) {
-        let S: any = param;
+    if (context.serviceMap.has(param)) {
+      let S: any = param;
 
-        if (S === ElementRef) {
-          returned = new ElementRef(context.node);
-        } else if (S === DOCUMENT) {
-          returned = context.document;
-        } else if (typeof S === 'function') {
-          returned = new S(...getArgs(S, context));
-        }
-
-        return returned;
+      if (S === ElementRef) {
+        returned = new ElementRef(context.node);
+      } else if (S === DOCUMENT) {
+        returned = context.document;
+      } else if (typeof S === 'function') {
+        returned = new S(...getArgs(S, context));
       }
-    });
+
+      return returned;
+    }
+  });
 
 const processValue = (root, path) => {
   path = path.split('.');
