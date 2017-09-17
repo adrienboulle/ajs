@@ -10,6 +10,8 @@ const htmlElement = require('domino/lib/htmlelts');
 
 import 'reflect-metadata';
 
+import { ElementRef, DOCUMENT } from 'api';
+
 declare let global: any;
 declare let Reflect: any;
 declare let Zone: any;
@@ -61,7 +63,6 @@ Object.defineProperty(htmlElement.HTMLElement.prototype, 'innerText',
   },
 );
 
-import { ElementRef, DOCUMENT } from './index';
 const BINDING = /\{\{(.*?)\}\}/;
 
 const getArgs = (cls, context) =>
@@ -224,6 +225,7 @@ const bootstrap = app => {
   });
 };
 
+// tslint:disable-next-line:variable-name
 export const __express = (toCompile => {
   if (toCompile && compileTs() === -1) {
     console.log('ERROR IN AJS TS');
@@ -271,7 +273,7 @@ export const __express = (toCompile => {
       let app;
 
       if (fs.existsSync(path)) {
-        app = require(__dirname + '/../../' + path);
+        app = require(__dirname + '/../../../' + path);
       } else {
         app = {
           components: [],
@@ -283,7 +285,7 @@ export const __express = (toCompile => {
             let f;
 
             try {
-              f = require(__dirname + '/../../' + pathRoot + file);
+              f = require(__dirname + '/../../../' + pathRoot + file);
             } catch (e) {
               return callback(e);
             }
