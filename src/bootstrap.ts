@@ -3,7 +3,6 @@ import { ElementRef, DOCUMENT } from './api';
 
 declare let Reflect: any;
 declare let Zone: any;
-declare let window: any;
 
 const BINDING = /\{\{(.*?)\}\}/;
 
@@ -126,7 +125,7 @@ export const bootstrap = app => {
   serviceMap.set(ElementRef, true);
   serviceMap.set(DOCUMENT, true);
 
-  window = app.window || window;
+  const window = app.window;
   const document = window.document;
   const root = document.querySelector('app');
 
