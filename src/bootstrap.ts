@@ -153,3 +153,5 @@ export const bootstrap = app => {
     .run(() => setTimeout(() => compile({ node: root, document, serviceMap, componentsMap })));
   });
 };
+
+export Ty
