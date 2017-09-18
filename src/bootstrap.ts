@@ -54,7 +54,7 @@ const compile = context => {
 
         if (meta.inputs && meta.inputs.length) {
           for (let input of meta.inputs) {
-            const splited = input.split[':'];
+            const splited = input.split(':');
             const from = splited[0];
             const to = splited[1];
 
@@ -64,7 +64,7 @@ const compile = context => {
 
         if (meta.outputs && meta.outputs.length) {
           for (let output of meta.outputs) {
-            const splited = output.split[':'];
+            const splited = output.split(':');
             const from = splited[0];
             const to = splited[1];
 
