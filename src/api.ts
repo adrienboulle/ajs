@@ -34,7 +34,7 @@ export function Input(val?: string): any {
     }
 
     annotations.inputs = annotations.inputs || [];
-    annotations.inputs.push(val || propertyKey);
+    annotations.inputs.push((val || propertyKey) + ':' + propertyKey);
   };
 }
 

@@ -54,17 +54,25 @@ const compile = context => {
 
         if (meta.inputs && meta.inputs.length) {
           for (let input of meta.inputs) {
-            newInstance[input] = context.instance ? context.instance[input] : null;
+            const splited = input.split[':'];
+            const from = splited[0];
+            const to = splited[1];
+
+            newInstance[to] = context.instance ? context.instance[from] : null;
           }
         }
 
         if (meta.outputs && meta.outputs.length) {
           for (let output of meta.outputs) {
-            newInstance[output] = val => {
+            const splited = output.split[':'];
+            const from = splited[0];
+            const to = splited[1];
+
+            newInstance[to] = val => {
               const instance = context.instance;
 
-              if (instance && context.instance[output]) {
-                context.instance[output](val);
+              if (instance && context.instance[from]) {
+                context.instance[from](val);
               }
             };
           }
