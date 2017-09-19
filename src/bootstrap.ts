@@ -59,6 +59,9 @@ const compile = context => {
             const to = splited[1];
 
             newInstance[to] = context.instance ? context.instance[from] : null;
+            Zone['__onChange'].subscribe(() => {
+              newInstance[to] = context.instance ? context.instance[from] : null;
+            });
           }
         }
 
@@ -88,26 +91,59 @@ const compile = context => {
           const val = processValue(context.instance, innerText);
 
           node.innerText = typeof val === 'string' ? val : innerText;
+          Zone['__onChange'].subscribe(() => {
+            node.innerText = typeof val === 'string' ? val : innerText;
+          });
+
+          return;
+        }
+
+        const model = node.getAttribute('ajs-model');
+
+        if (model && node.tagName.toLowerCase() === 'input') {
+          node.value = context.instance[model];
+          node.addEventListener('onchange', () => {
+            context.instance[model] = node.value;
+            Zone['__onChange'].emit();
+          });
+          Zone['__onChange'].subscribe(target => {
+            if (target !== node) {
+              node.value = context.instance[model];
+            }
+          });
+
+          return;
         }
       }
 
       break;
     case 3:
-      let processed;
-      let remaining = node.data;
-      let match = remaining.match(BINDING);
-      let strBefore;
+      const bind = () => {
+        let processed;
 
-      while (match) {
-        processed = processed || [];
-        strBefore = remaining.substring(0, match.index + match[0].length);
-        remaining = remaining.substring(match.index + match[0].length);
+        if (!node['__ajs-data']) {
+          node['__ajs-data'] = node.data;
+        }
 
-        processed.push(strBefore.replace(match[0], processValue(context.instance, match[1].trim())));
-        match = remaining.match(BINDING);
-      }
+        let remaining = node['__ajs-data'];
+        let match = remaining.match(BINDING);
+        let strBefore;
 
-      node.data = processed ? processed.join() : node.data;
+        while (match) {
+          processed = processed || [];
+          strBefore = remaining.substring(0, match.index + match[0].length);
+          remaining = remaining.substring(match.index + match[0].length);
+
+          processed.push(strBefore.replace(match[0], processValue(context.instance, match[1].trim())));
+          match = remaining.match(BINDING);
+        }
+
+        node.data = processed ? processed.join() : node.data;
+      };
+      bind();
+      Zone['__onChange'].subscribe(() => {
+        bind();
+      });
 
       break;
   }
@@ -144,20 +180,43 @@ export const bootstrap = app => {
   }
 
   return new Promise((resolve, reject) => {
-    // We run the compilation inside a Zone context in order to wait for all the async task to be finished before
-    // invoking the express callback
+    class OnChange {
+      private _subscribers: Function[] = [];
+      public subscribe(fnc: Function) {
+        this._subscribers.push(fnc);
+      }
+      public emit() {
+        for (let s of this._subscribers) {
+          s();
+        }
+      }
+    }
+
+    Zone['__onChange'] = new OnChange();
+
     Zone.current
     .fork({
-      onHasTask: (parentZoneDelegate: any, currentZone: any, targetZone: any, hasTaskState: any) => {
-        if (!hasTaskState.macroTask && !hasTaskState.microTask) {
-          resolve(document.innerHTML);
-        }
+      onInvokeTask(delegate: ZoneDelegate, current: Zone, target: Zone, task: Task, applyThis: any, applyArgs: any) {
+        delegate.invokeTask(target, task, applyThis, applyArgs);
+        Zone['__onChange'].emit(target);
       },
 
       onHandleError(parentZoneDelegate: any, currentZone: any, targetZone: any, error: any) {
-        reject(error);
+        if (typeof reject === 'function') {
+          reject(error);
+        }
+      },
+
+      onHasTask: (parentZoneDelegate: any, currentZone: any, targetZone: any, hasTaskState: any) => {
+        if (!hasTaskState.macroTask && !hasTaskState.microTask) {
+          if (typeof resolve === 'function') {
+            resolve();
+          }
+        }
       },
     })
-    .run(() => setTimeout(() => compile({ node: root, document, serviceMap, componentsMap })));
+    .run(() => {
+      compile({ node: root, document, serviceMap, componentsMap });
+    });
   });
 };
