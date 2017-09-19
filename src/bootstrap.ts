@@ -102,7 +102,7 @@ const compile = context => {
 
         if (model && node.tagName.toLowerCase() === 'input') {
           node.value = context.instance[model];
-          node.addEventListener('onchange', () => {
+          node.addEventListener('input', () => {
             context.instance[model] = node.value;
             Zone['__onChange'].emit();
           });
