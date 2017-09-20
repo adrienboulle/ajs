@@ -38,6 +38,24 @@ const processValue = (root, path) => {
   return val ? val.toString() : '';
 };
 
+const bind = (from: string, context: any) => {
+  let processed;
+  let remaining = from;
+  let match = remaining.match(BINDING);
+  let strBefore;
+
+  while (match) {
+    processed = processed || [];
+    strBefore = remaining.substring(0, match.index + match[0].length);
+    remaining = remaining.substring(match.index + match[0].length);
+
+    processed.push(strBefore.replace(match[0], processValue(context, match[1].trim())));
+    match = remaining.match(BINDING);
+  }
+
+  return processed ? processed.join() : null;
+};
+
 const compile = context => {
   const componentsMap = context.componentsMap;
   const node = context.node;
@@ -94,8 +112,6 @@ const compile = context => {
           Zone['__onChange'].subscribe(() => {
             node.innerText = typeof val === 'string' ? val : innerText;
           });
-
-          return;
         }
 
         const model = node.getAttribute('ajs-model');
@@ -111,39 +127,43 @@ const compile = context => {
               node.value = context.instance[model];
             }
           });
+        }
 
-          return;
+        const click = node.getAttribute('ajs-click');
+
+        if (click) {
+          node.addEventListener('click', (event: Event) => {
+            if ('function' === typeof context.instance[click]) {
+              context.instance[click](event);
+            }
+          });
+        }
+
+        for (let i = 0; i < node.attributes.length; i++) {
+          const attr = node.attributes[i];
+          attr['__ajs-data'] = attr.value;
+
+          attr.value = bind(attr['__ajs-data'], context.instance) || attr['__ajs-data'];
+
+          if (attr.value !== attr['__ajs-data']) {
+            Zone['__onChange'].subscribe(() => {
+              attr.value = bind(attr['__ajs-data'], context.instance) || attr['__ajs-data'];
+            });
+          }
         }
       }
 
       break;
     case 3:
-      const bind = () => {
-        let processed;
+      node['__ajs-data'] = node.data;
 
-        if (!node['__ajs-data']) {
-          node['__ajs-data'] = node.data;
-        }
+      node.data = bind(node['__ajs-data'], context.instance) || node['__ajs-data'];
 
-        let remaining = node['__ajs-data'];
-        let match = remaining.match(BINDING);
-        let strBefore;
-
-        while (match) {
-          processed = processed || [];
-          strBefore = remaining.substring(0, match.index + match[0].length);
-          remaining = remaining.substring(match.index + match[0].length);
-
-          processed.push(strBefore.replace(match[0], processValue(context.instance, match[1].trim())));
-          match = remaining.match(BINDING);
-        }
-
-        node.data = processed ? processed.join() : node.data;
-      };
-      bind();
-      Zone['__onChange'].subscribe(() => {
-        bind();
-      });
+      if (node.data !== node['__ajs-data']) {
+        Zone['__onChange'].subscribe(() => {
+          node.data = bind(node['__ajs-data'], context.instance) || node['__ajs-data'];
+        });
+      }
 
       break;
   }
