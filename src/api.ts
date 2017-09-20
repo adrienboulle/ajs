@@ -49,7 +49,7 @@ export function Output(val?: string): any {
     }
 
     annotations.outputs = annotations.outputs || [];
-    annotations.outputs.push(val || propertyKey);
+    annotations.outputs.push((val || propertyKey) + ':' + propertyKey);
   };
 }
 
