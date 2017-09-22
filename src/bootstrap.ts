@@ -61,8 +61,36 @@ const compile = context => {
   const node = context.node;
   let newInstance;
 
+  const childs = [];
+
+  for (let child of node.childNodes) {
+    childs.push(child);
+  }
+
   switch (node.nodeType) {
     case 1:
+      const ajsFor = node.getAttribute('ajs-for');
+
+      if (ajsFor) {
+        const vars = ajsFor.trim().replace(/[ ]+/g, ' ').split(' ');
+        node.removeAttribute('ajs-for');
+        const val = vars[0];
+        const iterable = context.instance[vars[2]];
+        let last = node;
+
+        for (let it of iterable) {
+          const cloned = node.cloneNode(true);
+          node.parentNode.insertBefore(cloned, last.nextSibling);
+          compile(Object.assign({}, context, { node: cloned, instance: Object.assign({ [val]: it }, context.instance) }));
+
+          last = cloned;
+        }
+
+        node.parentNode.removeChild(node);
+
+        return;
+      }
+
       if (componentsMap.has(node.tagName.toLowerCase())) {
         const classVal: any = componentsMap.get(node.tagName.toLowerCase());
         const meta = Reflect.getMetadata('annotations', classVal);
@@ -102,74 +130,79 @@ const compile = context => {
         if (typeof newInstance.onInit === 'function') {
           newInstance.onInit();
         }
-      } else {
-        const innerText = node.getAttribute('ajs-innertext');
 
-        if (innerText) {
-          const val = processValue(context.instance, innerText);
+        node.childNodes.forEach(childNode => {
+          compile(Object.assign({}, context, { node: childNode, instance: newInstance }));
+        });
 
+        return;
+      }
+
+      const innerText = node.getAttribute('ajs-innertext');
+
+      if (innerText) {
+        const val = processValue(context.instance, innerText);
+
+        node.innerText = typeof val === 'string' ? val : innerText;
+        Zone['__onChange'].subscribe(() => {
           node.innerText = typeof val === 'string' ? val : innerText;
-          Zone['__onChange'].subscribe(() => {
-            node.innerText = typeof val === 'string' ? val : innerText;
-          });
-        }
+        });
+      }
 
-        const model = node.getAttribute('ajs-model');
+      const model = node.getAttribute('ajs-model');
 
-        if (model && node.tagName.toLowerCase() === 'input') {
-          node.value = context.instance[model];
-          node.addEventListener('input', () => {
-            context.instance[model] = node.value;
-            Zone['__onChange'].emit();
-          });
-          Zone['__onChange'].subscribe(target => {
-            if (target !== node) {
-              node.value = context.instance[model];
-            }
-          });
-        }
-
-        const click = node.getAttribute('ajs-click');
-
-        if (click) {
-          node.addEventListener('click', (event: Event) => {
-            if ('function' === typeof context.instance[click]) {
-              context.instance[click](event);
-            }
-          });
-        }
-
-        for (let i = 0; i < node.attributes.length; i++) {
-          const attr = node.attributes[i];
-          attr['__ajs-data'] = attr.value;
-
-          attr.value = bind(attr['__ajs-data'], context.instance) || attr['__ajs-data'];
-
-          if (attr.value !== attr['__ajs-data']) {
-            Zone['__onChange'].subscribe(() => {
-              attr.value = bind(attr['__ajs-data'], context.instance) || attr['__ajs-data'];
-            });
+      if (model && node.tagName.toLowerCase() === 'input') {
+        node.value = context.instance[model];
+        node.addEventListener('input', () => {
+          context.instance[model] = node.value;
+          Zone['__onChange'].emit();
+        });
+        Zone['__onChange'].subscribe(target => {
+          if (target !== node) {
+            node.value = context.instance[model];
           }
+        });
+      }
+
+      const click = node.getAttribute('ajs-click');
+
+      if (click) {
+        node.addEventListener('click', (event: Event) => {
+          if ('function' === typeof context.instance[click]) {
+            context.instance[click](event);
+          }
+        });
+      }
+
+      for (let i = 0; i < node.attributes.length; i++) {
+        const attr = node.attributes[i];
+        const back = attr.value;
+
+        attr.value = bind(back, context.instance) || back;
+
+        if (attr.value !== back) {
+          Zone['__onChange'].subscribe(() => {
+            attr.value = bind(back, context.instance) || back;
+          });
         }
       }
 
       break;
     case 3:
-      node['__ajs-data'] = node.data;
+      const back = node.data;
+      node.data = bind(back, context.instance) || back;
 
-      node.data = bind(node['__ajs-data'], context.instance) || node['__ajs-data'];
-
-      if (node.data !== node['__ajs-data']) {
+      if (node.data !== back) {
         Zone['__onChange'].subscribe(() => {
-          node.data = bind(node['__ajs-data'], context.instance) || node['__ajs-data'];
+          node.data = bind(back, context.instance) || back;
         });
       }
 
       break;
   }
 
-  node.childNodes.forEach(childNode => {
-    compile(Object.assign({}, context, { node: childNode, instance: newInstance || context.instance }));
+  childs.forEach(childNode => {
+    compile(Object.assign({}, context, { node: childNode }));
   });
 };
 
