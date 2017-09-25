@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import { ElementRef, DOCUMENT } from './api';
+import * as _ from 'lodash';
 
 declare let Reflect: any;
 declare let Zone: any;
@@ -27,17 +28,6 @@ const getArgs = (cls, context) =>
     }
   });
 
-const processValue = (root, path) => {
-  path = path.split('.');
-  let val = root[path.shift()];
-
-  while (path.length && val && (val[path[0]] || typeof val[path[0]] === 'string')) {
-    val = val[path.shift()];
-  }
-
-  return val ? val.toString() : '';
-};
-
 const bind = (from: string, context: any) => {
   let processed;
   let remaining = from;
@@ -49,7 +39,7 @@ const bind = (from: string, context: any) => {
     strBefore = remaining.substring(0, match.index + match[0].length);
     remaining = remaining.substring(match.index + match[0].length);
 
-    processed.push(strBefore.replace(match[0], processValue(context, match[1].trim())));
+    processed.push(strBefore.replace(match[0], _.get(context, match[1].trim())));
     match = remaining.match(BINDING);
   }
 
@@ -141,25 +131,30 @@ const compile = context => {
       const innerText = node.getAttribute('ajs-innertext');
 
       if (innerText) {
-        const val = processValue(context.instance, innerText);
-
-        node.innerText = typeof val === 'string' ? val : innerText;
-        Zone['__onChange'].subscribe(() => {
+        const setVal = () => {
+          const val = _.get(context.instance, innerText);
           node.innerText = typeof val === 'string' ? val : innerText;
+        };
+        setVal();
+        Zone['__onChange'].subscribe(() => {
+          setVal();
         });
       }
 
       const model = node.getAttribute('ajs-model');
 
       if (model && node.tagName.toLowerCase() === 'input') {
-        node.value = context.instance[model];
+        const setVal = () => {
+          node.value = _.get(context.instance, model);
+        };
+        setVal();
         node.addEventListener('input', () => {
-          context.instance[model] = node.value;
+          _.set(context.instance, model, node.value);
           Zone['__onChange'].emit();
         });
         Zone['__onChange'].subscribe(target => {
           if (target !== node) {
-            node.value = context.instance[model];
+            setVal();
           }
         });
       }
@@ -168,8 +163,10 @@ const compile = context => {
 
       if (click) {
         node.addEventListener('click', (event: Event) => {
-          if ('function' === typeof context.instance[click]) {
-            context.instance[click](event);
+          const fnc = _.get(context.instance, click);
+
+          if ('function' === typeof fnc) {
+            fnc(event);
           }
         });
       }

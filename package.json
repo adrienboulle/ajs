@@ -12,15 +12,17 @@
   "dependencies": {
     "child_process": "^1.0.2",
     "domino": "^1.0.29",
-    "express": "^4.15.4",
+    "express": "^4.15.5",
     "jscs": "^3.0.7",
+    "lodash": "^4.17.4",
     "reflect-metadata": "^0.1.10",
     "tslint": "^5.7.0",
     "typescript": "^2.5.2",
     "zone.js": "^0.8.17"
   },
   "devDependencies": {
-    "@types/node": "^8.0.28",
+    "@types/lodash": "^4.14.74",
+    "@types/node": "^8.0.30",
     "webpack": "^3.6.0"
   }
 }
