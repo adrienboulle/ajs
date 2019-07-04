@@ -5,7 +5,9 @@
   "main": "lib/index.js",
   "typings": "./index.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
   },
   "author": "",
   "license": "ISC",
@@ -18,11 +20,13 @@
     "reflect-metadata": "^0.1.10",
     "tslint": "^5.7.0",
     "typescript": "^2.5.2",
-    "zone.js": "^0.8.17"
+    "zone.js": "^0.8.17",
+    "snyk": "^1.189.0"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.74",
     "@types/node": "^8.0.30",
     "webpack": "^3.6.0"
-  }
+  },
+  "snyk": true
 }
